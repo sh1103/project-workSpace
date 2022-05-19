@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div style="border: 1px solid;width: 200px; float: left">
+    <p id="ppp"></p>
+    <ul id="ulclass" style="margin-top: 30px;">
+        <span>회원목록</span>
+
+
+    </ul>
+
+</div>
+<div>
+    <ul id="ulchat" style="margin-top: 30px;">
+        <span>채팅방 목록</span>
+        <div class="container">
+            <ul id="chatList">
+
+            </ul>
+
+
+        </div>
+    </ul>
+</div>
+
+<div class="asdasd"></div>
+</body>
+
+
+<style>
+
+
+    * {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+
+        cursor: pointer;
+        margin-top: 20px;
+
+    }
+
+
+</style>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script>
+
+    let v = sessionStorage.getItem("mineSession");
+
+    const chatListli = document.getElementById('chatList')
+    //세션값 append
+    document.getElementById("ppp").append("내아이디:" + v)
+
+
+
+
+
+
+    //채팅방에서 내이름 빼기
+    function removesession() {
+        const nametd = document.querySelectorAll('.nametd');
+        console.log(nametd)
+        for (i = 0; i < nametd.length; i++) {
+
+            let receiverName = nametd[i].innerText
+            let matchname = receiverName.match(v)
+            let finl = receiverName.replace(matchname, '');
+
+            console.log(finl)
+            nametd[i].innerText = finl
+
+
+        }
+    }
+
+
+
+    //전체 회원 목록
+
+    let result = "";
+    $.ajax({
+        url: "/list",
+        dataType: "json",
+        type: "get",
+        async: false,
+        success: function (data) {
+            result = data
+
+        },
+        error: function () {
+            alert("실패");
+        }
+    });
+    //회원목록 맵핑
+
+
+
+    let lili = document.querySelectorAll('.lili');
+    result?.map((v) => {
+        document.getElementById('ulclass').innerHTML +=
+            `<li class="lili">${v}</li>`
+    })
+
+
+
+
+
+    //클릭시 해당 아이디와 내 아이디 url 파싱
+    for (i = 0; i < lili.length; i++) {
+        lili[i].addEventListener("click", function () {
+            alert("sss");
+            let id = JSON.stringify({
+                sender_id: v,
+                receiver_id: this.innerText
+            });
+
+            $.ajax({
+                type: "POST",
+                url: `/chatHistory/${v}/${this.innerText}`,
+                data: id,
+                contentType: "application/json",
+                success: function () {
+                    console.log(id)
+                    alert('입장');
+
+                    location.href = `/rooms`;
+
+                },
+                error: function (err) {
+
+                    alert('실패');
+
+                }
+            });
+
+
+        })
+    }
+  
+
+
+    //채팅내역있으면 보여주기
+    let chatList = [];
+    $.ajax({
+        url: `/chatList/${v}/${v}`,
+        dataType: "json",
+        type: "get",
+        async: false,
+        success: function (data) {
+            chatList = data
+
+        },
+        error: function () {
+            alert("실패");
+        }
+    });
+
+   // !chatList?chatListli.innerHTML +='<li class="nametd">채팅내역이 존재하지 않음</li>':
+
+    chatList?.map((v) =>{
+        console.log(v.roomName)
+        chatListli.innerHTML +=
+            `<li class="nametd">${v.roomName}</li>`
+        removesession()
+    })
+
+</script>
+</html>
